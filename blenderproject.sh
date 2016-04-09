@@ -7,6 +7,7 @@ HISTORYFILE=".history"
 DEFAULTFILE="scenes/default.blend"
 PROJECTDIR="${HOME}/Documents/BlenderProjects"
 ACTION="${1}"
+ARG0="${2}"
 
 if [ -d "${HOME}/Dokumentumok" ]; then
     PROJECTDIR="${HOME}/Dokumentumok/BlenderProjects"
@@ -32,8 +33,13 @@ if [ -f "${STEAMBLENDER}" ]; then
 fi
 
 CURRDIR=""
-if [ "${2}" != "" ]; then
-    CURRDIR="${2}"
+if [ "${DEFAULTBLENDERPROJECT}" = "" ]; then
+    DEFAULTBLENDERPROJECT="${2}"
+    ARG0="${3}"
+fi
+
+if [ "${DEFAULTBLENDERPROJECT}" != "" ]; then
+    CURRDIR="${DEFAULTBLENDERPROJECT}"
     
     if [ `echo "${CURRDIR}" | awk '{print substr ($0, 1, 1)}'` = "%" ] || [ `echo "${CURRDIR}" | awk '{print substr ($0, 1, 1)}'` = "\\" ]; then
 	CURRDIR="${PROJECTDIR}/"`echo "${CURRDIR}" | awk '{print substr ($0, 2, length)}'`
@@ -43,7 +49,7 @@ if [ "${2}" != "" ]; then
 	CURRDIR="${CURRDIR%?}"
     fi
 
-    if [ "${2}" = "." ]; then
+    if [ "${CURRDIR}" = "." ]; then
 	CURRDIR=`pwd`
     fi
 fi
@@ -177,7 +183,7 @@ help() {
     cat << HELP
 Created By nv8h
 ------------------------------------------
-${0} command project-folder [arg0] [arg1] ... [blender]
+${0} command [project-folder] [arg0] [arg1] ... [blender]
 
 Commands:
     help	-	Show this help
@@ -186,6 +192,8 @@ Commands:
     xdg-open	-	Open a file with the default application
     save	-	Compress project folder to tar.gz
     load	-	Load files from tar.gz to our project folder (!overwrite files)
+    
+    default	-	Set Default Project
     
     dbbackup	-	Move Compressed Project Files To Dropbox 
     dbrecover	-	Update Project From Dropbox Backup (!overwrite files)
@@ -200,6 +208,7 @@ Examples:
     ${0} dbbackup ./test
     ${0} dbrecover ./test
     ${0} dbrollback ./test
+    ${0} default ./test
 
 
 Shorts:
@@ -209,6 +218,7 @@ Shorts:
     xdg-open	-	xo
     save	-	s, tar, tgz, tarsave, tgzsave, compress
     load	-	l, tarload, tgzload, decompress
+    default	-	d, default-project, set-default-project
     
     dbbackup	-	dbb, dbu, dbupdate, dropbox-backup, dropbox-update
     dbrecover	-	dbr, dbrevert, dropbox-recover, dropbox-revert
@@ -238,30 +248,44 @@ afterrun() {
 
 
 beforerun $0 $*
-case "${1}" in
+case "${ACTION}" in
     "create"|"c")
 	ACTION="create"
 	create
 	;;
     
+    "set-default-project"|"default-project"|"default"|"d")
+	ACTION="set-default-project"
+	if [ "${ARG0}" = "" ]; then
+	    STR="export DEFAULTBLENDERPROJECT=\"${CURRDIR}\""
+	    export DEFAULTBLENDERPROJECT="${CURRDIR}"
+	else
+	    STR="export DEFAULTBLENDERPROJECT=\"${ARG0}\""
+	    export DEFAULTBLENDERPROJECT="${ARG0}"
+	fi
+	echo "Run the Following command: \n\n\t${STR}\n\n"
+	# We do not have to log this action
+	exit
+	;;
+    
     "open"|"o")
 	ACTION="open"
-	open ${3}
+	open ${ARG0}
 	;;
 	
     "xdg-open"|"xo")
 	ACTION="xdg-open"
-	xdgopen ${3}
+	xdgopen ${ARG0}
 	;;
     
     "compress"|"tar"|"tgz"|"tgzsave"|"tarsave"|"save"|"s")
 	ACTION="tarsave"
-	compress "${3}"
+	compress "${ARG0}"
 	;;
     
     "decompress"|"tgzload"|"tarload"|"load"|"l")
 	ACTION="tarload"
-	load "${3}"
+	load "${ARG0}"
 	;;
     
     "dropbox-backup"|"dbbackup"|"dbb"|"dropbox-update"|"dbupdate"|"dbu")
