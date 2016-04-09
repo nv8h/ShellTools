@@ -3,8 +3,11 @@
 STEAMBLENDER="${HOME}/.steam/steam/steamapps/common/Blender/blender"
 BLENDER="blender"
 
+HISTORYFILE=".history"
 DEFAULTFILE="scenes/default.blend"
 PROJECTDIR="${HOME}/Documents/BlenderProjects"
+ACTION="${1}"
+
 if [ -d "${HOME}/Dokumentumok" ]; then
     PROJECTDIR="${HOME}/Dokumentumok/BlenderProjects"
 fi
@@ -58,6 +61,29 @@ sourceimages
 echo "I will use blender from ${BLENDER}"
 echo "Project Directory: ${CURRDIR}"
 
+logAction() {
+    DT=`date +"%Y-%m-%d %T"`
+    echo "[${DT}] ${USERNAME} - $*" >> "${CURRDIR}/${HISTORYFILE}"
+}
+
+createJSON() {
+    cat <<EOF_JSON>"${CURRDIR}/project.json"
+{
+    "type": "shell",
+    "version": "v0.1",
+    
+    "user": "${USERNAME}",
+    
+    "project": {
+	"name": "${PROJECTNAME}",
+	"root": "${CURRDIR}",
+	"history-file": "${HISTORYFILE}",
+	"directory-list": "`echo "${DIRS}" | tr '\n' ' '`"
+    }
+}
+EOF_JSON
+}
+
 create() {
     if [ ! -d "${CURRDIR}" ]; then
 	mkdir "${CURRDIR}"
@@ -75,6 +101,7 @@ create() {
 	fi
     done
     
+    cp "${0}" "${CURRDIR}/blenderproject"
 }
 
 open() {
@@ -95,8 +122,11 @@ compress() {
 load() {
     TARTARGET="${1}"
     
+    cp "${CURRDIR}/${HISTORYFILE}" "${CURRDIR}/${HISTORYFILE}.old"
     echo "Decompress to \"${CURRDIR}/\" from ${TARTARGET}"
     tar xzf "${TARTARGET}" --directory="${CURRDIR}/"
+    cp "${CURRDIR}/${HISTORYFILE}.old" "${CURRDIR}/${HISTORYFILE}"
+    rm "${CURRDIR}/${HISTORYFILE}.old"
 }
 
 dbbackup() {
@@ -122,9 +152,14 @@ dbrecover() {
 
 dbrollback() {
     echo "Removing all new files"
+
+    TEMPFILE="/tmp/${PROJECTNAME}${HISTORYFILE}.old"
+    cp "${CURRDIR}/${HISTORYFILE}" "${TEMPFILE}"
     rm -r "${CURRDIR}"
     mkdir "${CURRDIR}"
     dbrecover
+    cp "${TEMPFILE}" "${CURRDIR}/${HISTORYFILE}"
+    rm "${TEMPFILE}"
 }
 
 help() {
@@ -157,39 +192,67 @@ Examples:
 HELP
 }
 
+beforerun() {
+    if [ ! -f "${CURRDIR}/${HISTORYFILE}" ]; then
+	logAction "Missing history file"
+    fi
+}
+
+afterrun() {
+    logAction "Command: ${0} $@"
+    logAction "Executed: ${ACTION}"
+    
+    if [ ! -f "${CURRDIR}/project.json" ]; then
+	createJSON
+    fi
+
+}
+
+
+beforerun
 case "${1}" in
     "create"|"+"|"c")
+	ACTION="create"
 	create
 	;;
     
     "open"|"o")
+	ACTION="open"
 	open
 	;;
     
     "compress")
+	ACTION="compress"
 	compress "${3}"
 	;;
     
-    "load"|"l")
+    "tarload"|"load"|"l")
+	ACTION="tarload"
 	load "${3}"
 	;;
     
     "dropbox-backup"|"dbbackup"|"dbb"|"dropbox-update"|"dbupdate"|"dbu")
+	ACTION="dropbox-update"
 	dbbackup
 	;;
     
-    "dropbox-recover"|"dbr")
+    "dropbox-revert"|"dropbox-recover"|"dbr")
+	ACTION="dropbox-recover"
 	dbrecover
 	;;
     
     "dropbox-rollback"|"dbrollback")
+	ACTION="dropbox-rollback"
 	dbrollback
 	;;
     
-    *|"help")
+    *|"help"|"h")
+	ACTION="help"
 	help;
 	;;
 esac
+afterrun
+
 
 
 
