@@ -104,7 +104,7 @@ dbrollback() {
 
 help() {
     cat << HELP
-Created By BlackCrocodile
+Created By raccoon
 ------------------------------------------
 ${0} command project-folder [arg0] [arg1] ... [blender]
 
