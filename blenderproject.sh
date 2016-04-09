@@ -105,11 +105,22 @@ create() {
 }
 
 open() {
+    if [ "${1}" != "" ]; then
+	DEFAULTFILE="${1}"
+    fi
     
     if [ ! -f "${CURRDIR}/${DEFAULTFILE}" ]; then
 	touch "${CURRDIR}/${DEFAULTFILE}"
     fi
     ${BLENDER} "${CURRDIR}/${DEFAULTFILE}"
+}
+
+xdgopen() {
+    if [ "${1}" != "" ]; then
+	DEFAULTFILE="${1}"
+    fi
+    
+    xdg-open "${CURRDIR}/${DEFAULTFILE}"
 }
 
 compress() {
@@ -171,7 +182,8 @@ ${0} command project-folder [arg0] [arg1] ... [blender]
 Commands:
     help	-	Show this help
     create	-	Create a project
-    open	-	Open a project ${DEFAULTFILE} file
+    open	-	Open a project file (default file: ${DEFAULTFILE})
+    xdg-open	-	Open a file with the default application
     save	-	Compress project folder to tar.gz
     load	-	Load files from tar.gz to our project folder (!overwrite files)
     
@@ -181,7 +193,8 @@ Commands:
     
 Examples:
     ${0} create ./test
-    ${0} open ./test
+    ${0} open ./test scenes/newscene.blend
+    ${0} xdg-open ./test scripts/custom.py
     ${0} save ./test test.tgz
     ${0} load ./test test.tgz
     ${0} dbbackup ./test
@@ -193,6 +206,7 @@ Shorts:
     help	-	h
     create	-	c
     open	-	o
+    xdg-open	-	xo
     save	-	s, tar, tgz, tarsave, tgzsave, compress
     load	-	l, tarload, tgzload, decompress
     
@@ -232,7 +246,12 @@ case "${1}" in
     
     "open"|"o")
 	ACTION="open"
-	open
+	open ${3}
+	;;
+	
+    "xdg-open"|"xo")
+	ACTION="xdg-open"
+	xdgopen ${3}
 	;;
     
     "compress"|"tar"|"tgz"|"tgzsave"|"tarsave"|"save"|"s")
