@@ -169,26 +169,36 @@ Created By nv8h
 ${0} command project-folder [arg0] [arg1] ... [blender]
 
 Commands:
-    help	-	Show help
+    help	-	Show this help
     create	-	Create a project
-    open	-	Open a project default.blend file
-    compress	-	Compress project folder to tar.gz
+    open	-	Open a project ${DEFAULTFILE} file
+    save	-	Compress project folder to tar.gz
     load	-	Load files from tar.gz to our project folder (!overwrite files)
     
-    db-backup	-	Move Compressed Project Files To Dropbox
-    db-recover	-	Update Project From Dropbox Backup (keep new files)
-    db-rollback	-	Revert Project (removes new files)
+    dbbackup	-	Move Compressed Project Files To Dropbox 
+    dbrecover	-	Update Project From Dropbox Backup (!overwrite files)
+    dbrollback	-	Revert Project (removes new files)
     
 Examples:
     ${0} create ./test
     ${0} open ./test
-    ${0} compress ./test test.tgz
+    ${0} save ./test test.tgz
     ${0} load ./test test.tgz
-    ${0} db-backup ./test
-    ${0} db-recover ./test
-    ${0} db-rollback ./test
+    ${0} dbbackup ./test
+    ${0} dbrecover ./test
+    ${0} dbrollback ./test
 
 
+Shorts:
+    help	-	h
+    create	-	c
+    open	-	o
+    save	-	s, tar, tgz, tarsave, tgzsave, compress
+    load	-	l, tarload, tgzload, decompress
+    
+    dbbackup	-	dbb, dbu, dbupdate, dropbox-backup, dropbox-update
+    dbrecover	-	dbr, dbrevert, dropbox-recover, dropbox-revert
+    dbrollback	-	dropbox-rollback
 HELP
 }
 
@@ -215,7 +225,7 @@ afterrun() {
 
 beforerun $0 $*
 case "${1}" in
-    "create"|"+"|"c")
+    "create"|"c")
 	ACTION="create"
 	create
 	;;
@@ -225,12 +235,12 @@ case "${1}" in
 	open
 	;;
     
-    "compress")
-	ACTION="compress"
+    "compress"|"tar"|"tgz"|"tgzsave"|"tarsave"|"save"|"s")
+	ACTION="tarsave"
 	compress "${3}"
 	;;
     
-    "tarload"|"load"|"l")
+    "decompress"|"tgzload"|"tarload"|"load"|"l")
 	ACTION="tarload"
 	load "${3}"
 	;;
@@ -240,7 +250,7 @@ case "${1}" in
 	dbbackup
 	;;
     
-    "dropbox-revert"|"dropbox-recover"|"dbr")
+    "dropbox-revert"|"dbrevert"|"dropbox-recover"|"dbrecover"|"dbr")
 	ACTION="dropbox-recover"
 	dbrecover
 	;;
