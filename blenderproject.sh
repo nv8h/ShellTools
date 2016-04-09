@@ -3,6 +3,21 @@
 STEAMBLENDER="${HOME}/.steam/steam/steamapps/common/Blender/blender"
 BLENDER="blender"
 
+DEFAULTFILE="scenes/default.blend"
+PROJECTDIR="${HOME}/Documents/BlenderProjects"
+if [ -d "${HOME}/Dokumentumok" ]; then
+    PROJECTDIR="${HOME}/Dokumentumok/BlenderProjects"
+fi
+if [ -d "${HOME}/BlenderProjects" ]; then
+    PROJECTDIR="${HOME}/BlenderProjects"
+fi
+if [ -d "${HOME}/Projects" ]; then
+    PROJECTDIR="${HOME}/Projects"
+fi
+if [ -d "${HOME}/Projects/Blender" ]; then
+    PROJECTDIR="${HOME}/Projects/Blender"
+fi
+
 # Check Blender Installation
 if [ -f "/usr/bin/blender" ]; then
     echo "Found Blender Installation from packages"
@@ -16,6 +31,11 @@ fi
 CURRDIR=`pwd`
 if [ "${2}" != "" ]; then
     CURRDIR="${2}"
+    
+    if [ `echo "${CURRDIR}" | awk '{print substr ($0, 1, 1)}'` = "%" ] || [ `echo "${CURRDIR}" | awk '{print substr ($0, 1, 1)}'` = "\\" ]; then
+	CURRDIR="${PROJECTDIR}/"`echo "${CURRDIR}" | awk '{print substr ($0, 2, length)}'`
+    fi
+    
     if [ `echo "${CURRDIR}" | awk '{print substr ($0, length, 1)}'` = "/" ]; then
 	CURRDIR="${CURRDIR%?}"
     fi
@@ -35,7 +55,8 @@ scripts
 sourceimages
 "
 
-echo  "I will use blender from ${BLENDER}"
+echo "I will use blender from ${BLENDER}"
+echo "Project Directory: ${CURRDIR}"
 
 create() {
     if [ ! -d "${CURRDIR}" ]; then
@@ -57,7 +78,11 @@ create() {
 }
 
 open() {
-    ${BLENDER} "${CURRDIR}/scenes/default.blend"
+    
+    if [ ! -f "${CURRDIR}/${DEFAULTFILE}" ]; then
+	touch "${CURRDIR}/${DEFAULTFILE}"
+    fi
+    ${BLENDER} "${CURRDIR}/${DEFAULTFILE}"
 }
 
 compress() {
@@ -104,7 +129,7 @@ dbrollback() {
 
 help() {
     cat << HELP
-Created By raccoon
+Created By nv8h
 ------------------------------------------
 ${0} command project-folder [arg0] [arg1] ... [blender]
 
