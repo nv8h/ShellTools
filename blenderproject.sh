@@ -31,7 +31,7 @@ if [ -f "${STEAMBLENDER}" ]; then
     BLENDER="${STEAMBLENDER}"
 fi
 
-CURRDIR=`pwd`
+CURRDIR=""
 if [ "${2}" != "" ]; then
     CURRDIR="${2}"
     
@@ -193,23 +193,27 @@ HELP
 }
 
 beforerun() {
-    if [ ! -f "${CURRDIR}/${HISTORYFILE}" ]; then
-	logAction "Missing history file"
+    if [ "${CURRDIR}" != "" ]; then
+	
+	if [ ! -f "${CURRDIR}/${HISTORYFILE}" ]; then
+	    logAction "Missing history file"
+        fi
     fi
 }
 
 afterrun() {
-    logAction "Command: ${0} $@"
-    logAction "Executed: ${ACTION}"
-    
-    if [ ! -f "${CURRDIR}/project.json" ]; then
-	createJSON
+    if [ "${CURRDIR}" != "" ]; then
+	logAction "Command: $*"
+	logAction "Executed: ${ACTION}"
+	
+	if [ ! -f "${CURRDIR}/project.json" ]; then
+	    createJSON
+        fi
     fi
-
 }
 
 
-beforerun
+beforerun $0 $*
 case "${1}" in
     "create"|"+"|"c")
 	ACTION="create"
@@ -251,7 +255,7 @@ case "${1}" in
 	help;
 	;;
 esac
-afterrun
+afterrun $0 $*
 
 
 
