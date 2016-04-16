@@ -22,6 +22,10 @@ if [ -d "${HOME}/Projects/Blender" ]; then
     PROJECTDIR="${HOME}/Projects/Blender"
 fi
 
+if [ ! -d "${PROJECTDIR}" ]; then
+    mkdir "${PROJECTDIR}"
+fi
+
 # Check Blender Installation
 if [ -f "/usr/bin/blender" ]; then
     echo "Found Blender Installation from packages"
@@ -56,6 +60,7 @@ fi
 PROJECTNAME=`basename "${CURRDIR}"`
 
 DIRS="
+ideas
 renders
 assets
 scenes
@@ -179,6 +184,12 @@ dbrollback() {
     rm "${TEMPFILE}"
 }
 
+listprojects() {
+    ls "${PROJECTDIR}"
+    
+    
+}
+
 help() {
     cat << HELP
 Created By nv8h
@@ -219,6 +230,8 @@ Shorts:
     save	-	s, tar, tgz, tarsave, tgzsave, compress
     load	-	l, tarload, tgzload, decompress
     default	-	d, default-project, set-default-project
+    
+    execute	-	e
     
     dbbackup	-	dbb, dbu, dbupdate, dropbox-backup, dropbox-update
     dbrecover	-	dbr, dbrevert, dropbox-recover, dropbox-revert
@@ -283,6 +296,14 @@ case "${ACTION}" in
 	compress "${ARG0}"
 	;;
     
+    "execute"|"e")
+	ACTION="execute"
+	CDIR=`pwd`
+	cd "${CURRDIR}"
+	${ARG0}
+	cd "${CDIR}"
+	;;
+    
     "decompress"|"tgzload"|"tarload"|"load"|"l")
 	ACTION="tarload"
 	load "${ARG0}"
@@ -301,6 +322,11 @@ case "${ACTION}" in
     "dropbox-rollback"|"dbrollback")
 	ACTION="dropbox-rollback"
 	dbrollback
+	;;
+    
+    "list"|"listprojects"|"lp"|"ls")
+	ACTION="list"
+	listprojects
 	;;
     
     *|"help"|"h")
